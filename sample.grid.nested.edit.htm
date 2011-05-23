@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="es">
+<head>
+	<title>// Simple Grid</title>
+	<style type="text/css">
+        body { padding: 10px; font-family: Tahoma; font-size: 0.8em; }
+        
+        #gridContainer table { width: 100%; }
+
+        /* nested grid - row hover */
+        table.grid table.grid tr.over td { background-color: #ffc; cursor: pointer; }
+        
+        /* adjust footer padding */
+        table.grid tfoot span.label { padding: 0; }
+        
+        /* cell styles */
+        .country-name { width: 180px; font-weight: bold; text-align: center; }
+        .country-members { width: 100%; padding: 0; }
+        .member-name { white-space: nowrap; }
+        .member-email { white-space: nowrap; width: 320px; }
+        .member-registration { white-space: nowrap; text-align: right; width: 100px; }
+        .member-account { white-space: nowrap; text-align: right; width: 100px; }
+	</style>
+	<link type="text/css" href="css/datagrid.css" rel="stylesheet" />
+	<link type="text/css" href="css/ui.datepicker.css" rel="stylesheet" />
+</head>
+<body>
+	<h1>js.datagrid.sample.nested.edit</h1>
+
+    <input id="btnUndo" type="button" value="Undo" onclick="caretaker.undo()" />
+    <input id="btnRedo" type="button" value="Redo" onclick="caretaker.redo()" />
+	<div id="gridContainer"></div>
+
+	<!-- dependencies -->
+	<script type="text/javascript" src="js/lib.jquery-1.2.5.js"></script>
+	<script type="text/javascript" src="js/lib.base.js"></script>
+	<script type="text/javascript" src="js/lib.validation.js"></script>
+	<script type="text/javascript" src="js/lib.datagrid.js"></script>
+	<script type="text/javascript" src="js/lib.caretaker.js"></script>
+	<script type="text/javascript" src="js/lib.datagrid.commands.js"></script>
+	<script type="text/javascript" src="js/ui.datepicker.js"></script>
+	<script type="text/javascript" src="js/ui.datepicker-es.js"></script>
+
+	<script type="text/javascript">
+	    var caretaker;
+
+	    $(document).ready(function() {
+	        // caretaker
+	        caretaker = new CommandCaretaker();
+	        caretaker.onChange = function(undoCount, redoCount) {
+	            $('#btnUndo')[0].disabled = !(undoCount > 0);
+	            $('#btnRedo')[0].disabled = !(redoCount > 0);
+	        };
+	        caretaker.onChange();
+
+	        // create grid
+	        var grid = new DataGrid(document.getElementById("gridContainer"), $schema, $data, false);
+	        
+	        // bind to subgrid-create and override row_updating
+	        grid.events.bind("subgrid_created", function(e, args) {
+	            // subgrid
+	            var subgrid = args.subgrid;
+	            // on updating
+	            subgrid.events.bind("row_updating", function(e, args) {
+	                // cancel default grid behavior
+	                args.cancel = true;
+	                // DataGridRowEditCommand(grid, gridRow, dataItem, oldValues, newValues)
+	                var cmd = new DataGridRowEditCommand(args.grid, args.dataItem, args.rowIndex, args.oldValues, args.newValues);
+	                caretaker.pushCommand(cmd);
+	                cmd.commit();
+	            });
+	        });
+
+            // init grid
+	        grid.init();
+	    });
+	    
+	    // CHILD SCHEMA
+	    var $subschema = [
+	        {
+	            headerText: "Name",
+	            propertyName: "Name",
+	            type: "string",
+	            className: "member-name",
+	            editable: true,
+	            validation: DataGrid.Validation.REQUIRED
+	        },
+	        {
+	            headerText: "Email",
+	            propertyName: "Email",
+	            type: "string",
+	            className: "member-email",
+	            editable: true,
+	            validation: DataGrid.Validation.REQUIRED | DataGrid.Validation.EMAIL
+	        },
+	        {
+	            headerText: "Registration",
+	            propertyName: "DateProp",
+	            type: "date",
+	            className: "member-registration",
+	            editable: true,
+	            validation: DataGrid.Validation.REQUIRED
+	        },
+	        {
+	            headerText: "Account",
+	            propertyName: "NumericProp",
+	            type: "number",
+	            formatString: function(v) {
+	                v += '';
+	                x = v.split('.');
+	                x1 = x[0];
+	                x2 = x.length > 1 ? '.' + x[1] : '';
+	                var rgx = /(\d+)(\d{3})/;
+	                while (rgx.test(x1)) {
+	                    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+	                }
+	                return "$ " + x1 + x2;
+	            },
+	            calculateTotal: true,
+	            className: "member-account"
+	        }];
+
+	    // SCHEMA
+	    var $schema = [
+	        {
+	            headerText: "Country",
+	            propertyName: "Country",
+	            type: "string",
+	            className: "country-name"
+	        },
+	        {
+	            headerText: "Members",
+	            propertyName: "Members",
+	            type: "schema",
+	            schema: $subschema,
+	            className: "country-members"
+	        }];
+
+	    // MODEL
+        var $data = [
+        {
+            Country: "Argentina",
+            Members: [
+                { Name: "Camacho, Amos H.", Email: "adipiscing@laoreetlibero.org", DateProp: new Date(2008, 10, 29), NumericProp: 2199 },
+                { Name: "Potts, Olga A.", Email: "libero.et.tristique@CurabiturdictumPhasellus.com", DateProp: new Date(2009, 07, 26), NumericProp: 7000 },
+                { Name: "Duke, Upton P.", Email: "id.magna@suscipitnonummyFusce.org", DateProp: new Date(2009, 10, 14), NumericProp: 4949 },
+                { Name: "Downs, Kevyn H.", Email: "eu.arcu@duiaugue.com", DateProp: new Date(2008, 11, 23), NumericProp: 4532 },
+                { Name: "Bryan, Dominique C.", Email: "In.lorem@arcuCurabiturut.ca", DateProp: new Date(2009, 08, 14), NumericProp: 6002 },
+                { Name: "Wilkinson, Chanda B.", Email: "commodo.at.libero@dapibus.com", DateProp: new Date(2009, 8, 8), NumericProp: 7998 }
+            ]
+        },
+        {
+            Country: "United States",
+            Members: [
+                { Name: "Rosa, Vivien H.", Email: "sapien.Aenean.massa@iaculisaliquetdiam.ca", DateProp: new Date(2009, 6, 13), NumericProp: 7606 },
+                { Name: "Brooks, Cara F.", Email: "magna@quam.org", DateProp: new Date(2009, 8, 20), NumericProp: 5038 },
+                { Name: "Rollins, Claire F.", Email: "Donec.tincidunt@quisurna.com", DateProp: new Date(2009, 10, 6), NumericProp: 6299 },
+                { Name: "Wagner, Sasha X.", Email: "volutpat.Nulla.facilisis@Donecestmauris.org", DateProp: new Date(2009, 2, 7), NumericProp: 7713 },
+                { Name: "Beard, Urielle V.", Email: "elit.Nulla.facilisi@hendreritaarcu.com", DateProp: new Date(2009, 5, 31), NumericProp: 5704 }
+            ]
+        },
+        {
+            Country: "United Kingdom",
+            Members: [
+                { Name: "Cantu, Chastity G.", Email: "velit.dui.semper@ipsum.ca", DateProp: new Date(2010, 1, 31), NumericProp: 7328 },
+                { Name: "Mercado, Dara C.", Email: "Cras.eu.tellus@pede.com", DateProp: new Date(2009, 12, 18), NumericProp: 8220 },
+                { Name: "Hoover, Kaseem P.", Email: "Sed.diam@consequatpurus.edu", DateProp: new Date(2009, 2, 1), NumericProp: 7895 },
+                { Name: "Blevins, Axel I.", Email: "hymenaeos.Mauris.ut@Nuncsollicitudin.ca", DateProp: new Date(2008, 12, 22), NumericProp: 7522 },
+                { Name: "Solomon, Zia S.", Email: "nec.enim.Nunc@enimmi.edu", DateProp: new Date(2009, 11, 24), NumericProp: 7341 },
+                { Name: "Savage, Todd C.", Email: "ac.libero.nec@asollicitudin.org", DateProp: new Date(2009, 9, 9), NumericProp: 8188 },
+                { Name: "Spence, Ann A.", Email: "feugiat.non.lobortis@lorem.org", DateProp: new Date(2008, 9, 26), NumericProp: 3894 },
+                { Name: "Marks, Octavius I.", Email: "malesuada.Integer@diam.com", DateProp: new Date(2008, 8, 7), NumericProp: 3276 }
+            ]
+        },
+        {
+            Country: "Spain",
+            Members: [
+                { Name: "Dejesus, Lila H.", Email: "mollis.nec@Aenean.ca", DateProp: new Date(2008, 7, 11), NumericProp: 4586 },
+                { Name: "Griffin, Ainsley D.", Email: "elit.pellentesque.a@nec.com", DateProp: new Date(2009, 3, 25), NumericProp: 8666 },
+                { Name: "Kent, Garth O.", Email: "quam.elementum.at@tempordiamdictum.com", DateProp: new Date(2009, 6, 8), NumericProp: 1769 },
+                { Name: "Allen, Lacy K.", Email: "ac@egestasa.org", DateProp: new Date(2010, 2, 7), NumericProp: 3900 },
+                { Name: "Campos, Walker D.", Email: "ipsum.Donec@venenatis.edu", DateProp: new Date(2009, 8, 17), NumericProp: 1130 }
+            ]
+        }];
+	</script>
+</body>
+</html>

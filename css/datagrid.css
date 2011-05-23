@@ -1,0 +1,40 @@
+table.grid { border-collapse: collapse; }
+table.grid * th {
+	padding: 4px; text-align: left;
+	background-color: #ddd; color: #666; font-weight: normal; border: 1px solid #CBC9C9; border-bottom-width: 4px; border-top: 0;
+	white-space: nowrap;
+}
+table.grid * th.sortable { cursor: pointer; }
+table.grid * th span.sort {
+	display: block; width: 9px; height: 6px;
+	margin-top: -4px; margin-right: -6px;
+	float: right;
+	background: url(images/icon_sort.gif) no-repeat;
+	background-position: 100px 0px;
+}
+table.grid * th.sortUp span.sort {
+    background-position: 0px 0px;
+}
+table.grid * th.sortDown span.sort {
+    background-position: 0px -100px;
+}
+
+table.grid * td { background-color: #f6f6f6; border: 1px solid #CBC9C9;  white-space: nowrap; }
+table.grid * td input.textbox { padding: 2px 3px; width: 100%; height: 100%; }
+html > body table.grid td input.textbox { padding: 3px 0px; text-indent: 3px; }
+table.grid * span.label { display: block; padding: 4px; }
+table.grid * tr.selected td { background-color: #C9E3F6; }
+table.grid tfoot td { padding: 4px; background-color: #CBC9C9; font-weight: bold; }
+
+table.grid .editable { cursor: pointer !important }
+table.grid * .cellOff span { display: none !important; }
+table.grid thead * th.cellOff { background-color: #cfcfcf; width: 15px !important; border-left: 0px; border-right: 0px !important;}
+table.grid tbody * td.cellOff { background-color: #eee; width: 15px !important; border-left: 0px; border-right: 0px !important; }
+
+/* edit */
+table.grid input.textbox, table.grid textarea { border: 1px solid #666; padding: 1px 2px; }
+table.grid input.radio { border: 0; }
+table.grid select { border: 1px solid #666; padding: 0px; }
+
+table.grid .error { color: #F00; }
+table.grid input.error { border-color: #f00; }
